@@ -7,37 +7,54 @@ import pusher from "../helper/pusher";
 moment().local("id");
 
 const Home = () => {
-  const { tableData, setTableData, localData, setLocalData, API_URL } =
-    useContext(context.default.jobsData);
-  console.log("q212182", API_URL);
+  const {
+    tableData,
+    setTableData,
+    localData,
+    setLocalData,
+    API_URL,
+    doneReminder,
+    setDoneReminder,
+  } = useContext(context.default.jobsData);
   const [name, setName] = useState("");
   const [timestamp, setTimestamp] = useState("");
-  const [doneReminder, setDoneReminder] = useState("");
-  const channelPusher = pusher.subscribe("reminder");
-  channelPusher.bind("done", (data) => {
-    console.log("first");
-    setDoneReminder("qwqw");
-  });
+  // const channelPusher = pusher.subscribe("reminder");
+  // channelPusher.bind("done", (data) => {
+  //   console.log(data);
+  //   setDoneReminder("qwqw");
+  // });
 
-  useEffect(
-    () => {
-      console.log("data changes");
-      function storageEventHandler(event) {
-        if (event.key === "table-data") {
-          console.log("cvcvcvc", localStorage.getItem("table-data"));
-          setTableData(localStorage.getItem("table-data"));
-        }
+  useEffect(() => {
+    console.log("data changes");
+    function storageEventHandler(event) {
+      if (event.key === "table-data") {
+        console.log("cvcvcvc", localStorage.getItem("table-data"));
+        setTableData(localStorage.getItem("table-data"));
       }
+    }
 
-      window.addEventListener("storage", storageEventHandler);
-      return () => {
-        // Remove the handler when the component unmounts
-        window.removeEventListener("storage", storageEventHandler);
-      };
-    },
-    [tableData, localData, localStorage.getItem("table-data")],
-    doneReminder
-  );
+    window.addEventListener("storage", storageEventHandler);
+    return () => {
+      // Remove the handler when the component unmounts
+      window.removeEventListener("storage", storageEventHandler);
+    };
+  }, [tableData, localData, localStorage.getItem("table-data")]);
+
+  useEffect(() => {
+    console.log("cek reminder", doneReminder);
+    let dataLocal = JSON.parse(localStorage.getItem("table-data"));
+    for (const element of dataLocal) {
+      console.log("cek id", element.id);
+      if (element.id == doneReminder) {
+        console.log("cek status", element.id);
+        element.status = "DONE";
+      }
+    }
+    console.log("is updated", dataLocal);
+    localStorage.setItem("table-data", JSON.stringify(dataLocal));
+    setTableData(JSON.stringify(dataLocal));
+    setLocalData(JSON.stringify(dataLocal));
+  }, [doneReminder]);
 
   const save = async () => {
     if (name == "") {

@@ -3,6 +3,7 @@ import Home from "./page/Home";
 import { useEffect, useState } from "react";
 import * as context from "./helper/helper";
 import UpdateJobs from "./page/Update";
+import pusher from "./helper/pusher";
 
 let API_URL = process.env.REACT_APP_API_URL;
 
@@ -10,27 +11,40 @@ function App() {
   console.log("qwqwqwqasasa", API_URL);
   let [tableData, setTableData] = useState(JSON.stringify([]));
   let [localData, setLocalData] = useState(JSON.stringify([]));
-  let a = localStorage.getItem("table-data");
+  const [doneReminder, setDoneReminder] = useState();
+
   useEffect(() => {
-    API_URL = process.env.REACT_APP_API_URL;
     let data = localStorage.getItem("table-data");
-    console.log("qwqwqqw", data);
     if (!data) {
-      console.log("first@");
       setTableData(JSON.stringify([]));
       setLocalData(JSON.stringify([]));
     } else {
-      console.log("first#", data);
       setTableData(data);
       setLocalData(data);
     }
   }, [localData, tableData, API_URL]);
 
+  useEffect(() => {
+    const channel = pusher.subscribe("reminder");
+    channel.bind("done", (data) => {
+      console.log("cek done", data);
+      setDoneReminder(data);
+    });
+  }, [doneReminder]);
+
   return (
     <>
       <div className="w-full">
         <context.default.jobsData.Provider
-          value={{ tableData, setTableData, localData, setLocalData, API_URL }}
+          value={{
+            tableData,
+            setTableData,
+            localData,
+            setLocalData,
+            API_URL,
+            doneReminder,
+            setDoneReminder,
+          }}
         >
           <Router>
             <Routes>
