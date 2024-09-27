@@ -3,6 +3,7 @@ import moment from "moment";
 import DataTable from "react-data-table-component";
 import * as context from "../helper/helper";
 import axios from "axios";
+import pusher from "../helper/pusher";
 moment().local("id");
 
 const Home = () => {
@@ -11,22 +12,32 @@ const Home = () => {
   console.log("q212182", API_URL);
   const [name, setName] = useState("");
   const [timestamp, setTimestamp] = useState("");
+  const [doneReminder, setDoneReminder] = useState("");
+  const channelPusher = pusher.subscribe("reminder");
+  channelPusher.bind("done", (data) => {
+    console.log("first");
+    setDoneReminder("qwqw");
+  });
 
-  useEffect(() => {
-    console.log("data changes");
-    function storageEventHandler(event) {
-      if (event.key === "table-data") {
-        console.log("cvcvcvc", localStorage.getItem("table-data"));
-        setTableData(localStorage.getItem("table-data"));
+  useEffect(
+    () => {
+      console.log("data changes");
+      function storageEventHandler(event) {
+        if (event.key === "table-data") {
+          console.log("cvcvcvc", localStorage.getItem("table-data"));
+          setTableData(localStorage.getItem("table-data"));
+        }
       }
-    }
 
-    window.addEventListener("storage", storageEventHandler);
-    return () => {
-      // Remove the handler when the component unmounts
-      window.removeEventListener("storage", storageEventHandler);
-    };
-  }, [tableData, localData, localStorage.getItem("table-data")]);
+      window.addEventListener("storage", storageEventHandler);
+      return () => {
+        // Remove the handler when the component unmounts
+        window.removeEventListener("storage", storageEventHandler);
+      };
+    },
+    [tableData, localData, localStorage.getItem("table-data")],
+    doneReminder
+  );
 
   const save = async () => {
     if (name == "") {
