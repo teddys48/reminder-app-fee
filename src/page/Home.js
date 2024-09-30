@@ -18,11 +18,6 @@ const Home = () => {
   } = useContext(context.default.jobsData);
   const [name, setName] = useState("");
   const [timestamp, setTimestamp] = useState("");
-  // const channelPusher = pusher.subscribe("reminder");
-  // channelPusher.bind("done", (data) => {
-  //   console.log(data);
-  //   setDoneReminder("qwqw");
-  // });
 
   useEffect(() => {
     console.log("data changes");
@@ -43,6 +38,9 @@ const Home = () => {
   useEffect(() => {
     console.log("cek reminder", doneReminder);
     let dataLocal = JSON.parse(localStorage.getItem("table-data"));
+    if (!dataLocal) {
+      dataLocal = [];
+    }
     for (const element of dataLocal) {
       console.log("cek id", element.id);
       if (element.id == doneReminder) {
@@ -99,11 +97,22 @@ const Home = () => {
   };
 
   const deleteData = async (id) => {
-    console.log("delete", id);
-  };
+    await axios
+      .post(API_URL + "api/jobs/delete", { id: id })
+      .then((data) => {
+        console.log(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
 
-  const done = async (id) => {
-    console.log("done", id);
+    let data = JSON.parse(tableData);
+    for (let index = 0; index < data.length; index++) {
+      data.splice(index, 1);
+    }
+
+    localStorage.setItem("table-data", JSON.stringify(data));
+    setTableData(JSON.stringify(data));
   };
 
   const columns = [
@@ -124,20 +133,18 @@ const Home = () => {
       cell: (param) => {
         return (
           <>
-            <div className="flex w-full space-x-2">
-              <button
-                className="px-2 flex py-1 bg-pink-400 text-white rounded-md"
-                onClick={() => done(param.id)}
-              >
-                Done
-              </button>
-              <button
-                className="px-2 py-1 bg-pink-400 text-white rounded-md"
-                onClick={() => deleteData(param.id)}
-              >
-                Delete
-              </button>
-            </div>
+            {param.status != "DONE" ? (
+              <div className="flex w-full space-x-2">
+                <button
+                  className="px-2 py-1 bg-pink-400 text-white rounded-md"
+                  onClick={() => deleteData(param.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            ) : (
+              ""
+            )}
           </>
         );
       },
@@ -149,12 +156,14 @@ const Home = () => {
   return (
     <>
       <div className="flex flex-col w-full p-1">
-        <span className="w-full">Reminder Scheduler</span>
-        <div className="flex w-full p-4 justify-start space-x-2 flex-row">
+        <span className="w-full flex max-sm:justify-center">
+          Reminder Scheduler
+        </span>
+        <div className="flex w-full p-4 justify-start space-x-2 flex-row max-sm:flex-col max-sm:space-x-0 max-sm:space-y-1">
           <input
             type="text"
             placeholder="name..."
-            className="border-2 border-pink-400 rounded-md p-1"
+            className="border-2 border-pink-400 rounded-md p-1 outline-pink-600"
             value={name}
             onChange={(e) => {
               console.log("qwqw", e.target.value);
@@ -164,7 +173,7 @@ const Home = () => {
           <input
             type="datetime-local"
             placeholder="date..."
-            className="border-2 border-pink-400 rounded-md p-1"
+            className="border-2 border-pink-400 rounded-md p-1 outline-pink-600"
             min={moment().local()}
             value={timestamp}
             onChange={(e) => {
