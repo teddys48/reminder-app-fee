@@ -104,7 +104,7 @@ const Home = () => {
       })
       .catch((err) => {
         console.log(err);
-      });
+      }); 
 
     let data = JSON.parse(tableData);
     for (let index = 0; index < data.length; index++) {
